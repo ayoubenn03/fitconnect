@@ -1,3 +1,7 @@
+# Equipe
+
+Ayoub EN NOUARY - Pravin WIJAYASUNTHARAM - Sina RAMEZANI
+
 # FitConnect — Réservation & paiement de cours de sport
 
 TP microservices EFRIE M2-DEV1 : 4 nouveaux services métier (`class-service`, `booking-service`,
@@ -37,14 +41,14 @@ Saga. `class-service`, `payment-service` et `notification-service` ne se connais
 Une réservation traverse jusqu'à 4 étapes locales, chacune dans un service différent, sans
 transaction distribuée qui engloberait les 4 bases :
 
-1. **Vérifier le cours** (`GET /api/classes/{id}` sur class-service) et capturer un *snapshot*
+1. **Vérifier le cours** (`GET /api/classes/{id}` sur class-service) et capturer un _snapshot_
    (nom, date, instructeur, prix) dans la réservation — ce snapshot ne change plus jamais
    rétroactivement, même si le cours est modifié ensuite.
 2. **Réserver les places** (`PATCH /api/classes/{id}/increment`) — protégé par verrouillage
    optimiste (`@Version`) côté class-service : un conflit renvoie 409, traduit en
    `NoSpotsAvailableException` côté booking-service.
 3. **Créer la réservation** (statut `PENDING_PAYMENT`, deadline de paiement = +1h). Si cette étape
-   échoue *après* que les places ont été prises à l'étape 2, booking-service **compense** en
+   échoue _après_ que les places ont été prises à l'étape 2, booking-service **compense** en
    appelant `PATCH /api/classes/{id}/decrement` pour les relâcher.
 4. **Notifier** (best-effort — un échec d'envoi ne bloque et n'annule jamais la réservation).
 
@@ -74,17 +78,17 @@ Démarre les 9 services dans le bon ordre (`depends_on` + healthchecks) : eureka
 config-server d'abord, puis les services métier, puis api-gateway en dernier. Premier démarrage
 plus long (téléchargement des images Maven/JDK + build de chaque module).
 
-| Service               | Port | URL locale                          |
-|------------------------|------|--------------------------------------|
-| eureka-server          | 8761 | http://localhost:8761                |
-| config-server          | 8888 | http://localhost:8888                |
-| api-gateway             | 8080 | http://localhost:8080                |
-| product-service         | 8081 | http://localhost:8081                |
-| order-service            | 8082 | http://localhost:8082                |
-| class-service            | 8091 | http://localhost:8091/swagger-ui.html |
-| booking-service           | 8092 | http://localhost:8092/swagger-ui.html |
-| payment-service            | 8093 | http://localhost:8093/swagger-ui.html |
-| notification-service        | 8094 | http://localhost:8094/swagger-ui.html |
+| Service              | Port | URL locale                            |
+| -------------------- | ---- | ------------------------------------- |
+| eureka-server        | 8761 | http://localhost:8761                 |
+| config-server        | 8888 | http://localhost:8888                 |
+| api-gateway          | 8080 | http://localhost:8080                 |
+| product-service      | 8081 | http://localhost:8081                 |
+| order-service        | 8082 | http://localhost:8082                 |
+| class-service        | 8091 | http://localhost:8091/swagger-ui.html |
+| booking-service      | 8092 | http://localhost:8092/swagger-ui.html |
+| payment-service      | 8093 | http://localhost:8093/swagger-ui.html |
+| notification-service | 8094 | http://localhost:8094/swagger-ui.html |
 
 Toutes les requêtes métier passent par la gateway : `http://localhost:8080/api/...`.
 
