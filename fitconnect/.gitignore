@@ -1,0 +1,9 @@
+# Build artifacts (Maven multi-module)
+target/
+*.jar
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/

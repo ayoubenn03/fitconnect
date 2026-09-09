@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.formation.product.service.ProductServiceTest
--------------------------------------------------------------------------------
-Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.576 s -- in com.formation.product.service.ProductServiceTest
