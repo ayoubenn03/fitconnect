@@ -60,11 +60,7 @@ public class NotificationService {
         return notificationRepository.findByUserId(userId).stream().map(NotificationMapper::toResponse).toList();
     }
 
-    /**
-     * "Pending" ici designe les notifications en echec (FAILED) en attente d'un nouvel essai via
-     * /retry, pas un statut PENDING litteral : send()/retry() resolvent toujours immediatement en
-     * SENT ou FAILED, l'enum NotificationStatus.PENDING n'est donc jamais atteint en pratique.
-     */
+    // "Pending" = notifications FAILED en attente de retry, pas un statut PENDING litteral (jamais atteint).
     @Transactional(readOnly = true)
     public List<NotificationResponse> getPending() {
         return notificationRepository.findByStatus(NotificationStatus.FAILED).stream()

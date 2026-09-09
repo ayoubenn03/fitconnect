@@ -49,10 +49,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
-        <!-- Le client Feign par defaut (java.net.HttpURLConnection) ne supporte pas la methode
-             HTTP PATCH ("Invalid HTTP method: PATCH") ; ClassClient.incrementParticipants/decrementParticipants
-             en ont besoin pour appeler class-service. Apache HttpClient5 la supporte nativement et
-             est auto-detecte par spring-cloud-starter-openfeign des qu'il est sur le classpath. -->
+        <!-- Le client Feign par defaut ne supporte pas PATCH (utilise par ClassClient). -->
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-hc5</artifactId>
