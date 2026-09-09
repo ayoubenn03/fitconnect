@@ -1,0 +1,12 @@
+com\formation\product\service\ProductService.class
+com\formation\product\exception\GlobalExceptionHandler.class
+com\formation\product\ProductServiceApplication.class
+com\formation\product\model\Product.class
+com\formation\product\exception\ApiError.class
+com\formation\product\config\OpenApiConfig.class
+com\formation\product\dto\ProductResponse.class
+com\formation\product\controller\ProductController.class
+com\formation\product\dto\ProductRequest.class
+com\formation\product\repository\ProductRepository.class
+com\formation\product\service\ProductMapper.class
+com\formation\product\exception\ProductNotFoundException.class

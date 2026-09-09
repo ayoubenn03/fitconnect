@@ -1,0 +1,709 @@
+<title>FitConnect — Suivi du TP</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f6f3ec;
+    --surface: #ffffff;
+    --surface-alt: #efe9dc;
+    --ink: #1d1a15;
+    --ink-soft: #625c4e;
+    --ink-faint: #8b8574;
+    --line: #ded5bf;
+    --accent: #d94a1a;
+    --accent-ink: #fff8ef;
+    --accent-soft: #f3e2d4;
+    --done: #3c7a56;
+    --done-soft: #dfeee3;
+    --progress: #d94a1a;
+    --progress-soft: #f7e2d4;
+    --pending: #9a927e;
+    --pending-soft: #e9e3d3;
+    --code-bg: #1d1a15;
+    --code-ink: #f1ece0;
+    --code-accent: #ff8659;
+    --shadow: 0 1px 2px rgba(29,26,21,0.06), 0 8px 24px rgba(29,26,21,0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16140f;
+      --surface: #1e1b15;
+      --surface-alt: #262219;
+      --ink: #f2ede1;
+      --ink-soft: #bcb3a0;
+      --ink-faint: #8a8271;
+      --line: #38321f;
+      --accent: #ff7a45;
+      --accent-ink: #1a1006;
+      --accent-soft: #3a2417;
+      --done: #6cbf93;
+      --done-soft: #1c3327;
+      --progress: #ff7a45;
+      --progress-soft: #3a2417;
+      --pending: #7c7561;
+      --pending-soft: #262219;
+      --code-bg: #100e0a;
+      --code-ink: #f1ece0;
+      --code-accent: #ffb08c;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16140f;
+    --surface: #1e1b15;
+    --surface-alt: #262219;
+    --ink: #f2ede1;
+    --ink-soft: #bcb3a0;
+    --ink-faint: #8a8271;
+    --line: #38321f;
+    --accent: #ff7a45;
+    --accent-ink: #1a1006;
+    --accent-soft: #3a2417;
+    --done: #6cbf93;
+    --done-soft: #1c3327;
+    --progress: #ff7a45;
+    --progress-soft: #3a2417;
+    --pending: #7c7561;
+    --pending-soft: #262219;
+    --code-bg: #100e0a;
+    --code-ink: #f1ece0;
+    --code-accent: #ffb08c;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    line-height: 1.5;
+  }
+  ::selection { background: var(--accent-soft); }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 40px 24px 96px;
+  }
+
+  header.hero {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 36px;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  h1 {
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-weight: 800;
+    font-size: clamp(38px, 6vw, 58px);
+    line-height: 0.96;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .hero-sub {
+    max-width: 62ch;
+    color: var(--ink-soft);
+    font-size: 16px;
+  }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 5px 11px;
+    border-radius: 100px;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    background: var(--surface);
+  }
+  .pill b { color: var(--ink); font-weight: 600; }
+
+  h2 {
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-weight: 700;
+    font-size: 27px;
+    letter-spacing: 0.01em;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+  .section-lede {
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    max-width: 68ch;
+    margin: 0 0 20px;
+  }
+  section { margin-bottom: 52px; }
+  section > .eyebrow { display: block; margin-bottom: 8px; }
+
+  /* ---- progress ---- */
+  .progress-shell {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .progress-count {
+    font-family: 'Big Shoulders Display', sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .progress-bar-track {
+    height: 8px;
+    border-radius: 100px;
+    background: var(--surface-alt);
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--accent), var(--code-accent));
+    width: var(--pct, 0%);
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 8px;
+  }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 9px 10px;
+    border-radius: 9px;
+    background: var(--surface-alt);
+    font-size: 13.5px;
+  }
+  .step .dot {
+    flex: 0 0 auto;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+  .step.done .dot { background: var(--done); color: var(--done-soft); }
+  .step.done .dot::after { content: "✓"; }
+  .step.progress .dot { background: var(--progress); color: var(--progress-soft); }
+  .step.progress .dot::after { content: "•"; font-size: 16px; }
+  .step.pending .dot { background: transparent; border: 1.5px solid var(--pending); }
+  .step.done { color: var(--ink); }
+  .step.pending { color: var(--ink-faint); }
+  .step.progress { color: var(--ink); font-weight: 500; }
+
+  /* ---- architecture diagram ---- */
+  .diagram-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  pre.mermaid { margin: 0; min-width: 640px; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+  /* ---- concept cards ---- */
+  .concept {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px 26px;
+    box-shadow: var(--shadow);
+    margin-bottom: 18px;
+  }
+  .concept-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .concept-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-weight: 500;
+  }
+  .concept h3 {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 17.5px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .concept p { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 12px; }
+  .concept p:last-child { margin-bottom: 0; }
+  .concept code.inline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+    background: var(--surface-alt);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+
+  pre.code-block {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.6px;
+    line-height: 1.6;
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 0 0 12px;
+  }
+  pre.code-block .cm { color: #8a8271; font-style: italic; }
+  pre.code-block .kw { color: var(--code-accent); }
+  pre.code-block .file {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+
+  .verdict {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: var(--done-soft);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+  }
+  .verdict b { color: var(--done); }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  @media (max-width: 640px) {
+    .steps { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <span class="eyebrow">EFRIE — M2-DEV1 — Microservices</span>
+    <h1>FitConnect, brique par brique</h1>
+    <p class="hero-sub">
+      Réservation &amp; paiement de cours de sport, en quatre microservices orchestrés en Saga
+      (<code class="inline" style="font-family:'JetBrains Mono',monospace;background:var(--surface-alt);padding:1px 5px;border-radius:4px;">class</code> →
+      <code class="inline" style="font-family:'JetBrains Mono',monospace;background:var(--surface-alt);padding:1px 5px;border-radius:4px;">booking</code> →
+      <code class="inline" style="font-family:'JetBrains Mono',monospace;background:var(--surface-alt);padding:1px 5px;border-radius:4px;">payment</code> →
+      <code class="inline" style="font-family:'JetBrains Mono',monospace;background:var(--surface-alt);padding:1px 5px;border-radius:4px;">notification</code>).
+      Cette page suit l'avancée et explique chaque concept au fur et à mesure — garde-la sous les yeux pendant qu'on code.
+    </p>
+    <div class="hero-meta">
+      <span class="pill">Base : <b>Spring Boot 3.3.2</b></span>
+      <span class="pill">Java <b>17</b></span>
+      <span class="pill">Spring Cloud <b>2023.0.3</b></span>
+      <span class="pill">Repo : <b>fitconnect/</b></span>
+    </div>
+  </header>
+
+  <section id="progress">
+    <span class="eyebrow">Avancement</span>
+    <h2>Où on en est</h2>
+    <p class="section-lede">Les 11 briques du TP, dans l'ordre où on les construit. Coché = codé (pas encore compilé chez toi).</p>
+    <div class="progress-shell">
+      <div class="progress-top">
+        <span class="progress-count" id="progress-count">11 / 11</span>
+        <span class="pill" style="border-color:transparent;background:var(--done-soft);color:var(--done);">TP complet</span>
+      </div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" style="--pct:100%"></div></div>
+      <div class="steps">
+        <div class="step done"><span class="dot"></span>Infra : modules, config-repo, routes gateway</div>
+        <div class="step done"><span class="dot"></span>class-service : entité + validation + enums</div>
+        <div class="step done"><span class="dot"></span>class-service : repository + service + controller</div>
+        <div class="step done"><span class="dot"></span>booking-service : entité + DTOs (snapshot)</div>
+        <div class="step done"><span class="dot"></span>booking-service : clients Feign + Circuit Breaker</div>
+        <div class="step done"><span class="dot"></span>booking-service : orchestration Saga</div>
+        <div class="step done"><span class="dot"></span>payment-service complet</div>
+        <div class="step done"><span class="dot"></span>notification-service complet</div>
+        <div class="step done"><span class="dot"></span>Scheduler booking-service</div>
+        <div class="step done"><span class="dot"></span>Tests unitaires + intégration</div>
+        <div class="step done"><span class="dot"></span>Postman, README, Docker</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <span class="eyebrow">Vue d'ensemble</span>
+    <h2>L'architecture</h2>
+    <p class="section-lede">
+      Eureka (annuaire), config-server (config centralisée) et l'api-gateway (point d'entrée unique, :8080)
+      étaient déjà en place. On y branche 4 nouveaux services métier.
+    </p>
+    <div class="diagram-card">
+      <pre class="mermaid">
+flowchart TB
+    client(["Client / Postman"]) --> gw["api-gateway :8080"]
+    gw -->|"/api/classes/**"| cls["class-service :8091\nFitnessClass + @Version"]
+    gw -->|"/api/bookings/**"| bk["booking-service :8092\nOrchestrateur Saga"]
+    gw -->|"/api/payments/**"| pay["payment-service :8093"]
+    gw -->|"/api/notifications/**"| notif["notification-service :8094"]
+
+    bk -. "Feign #1: verifie + reserve" .-> cls
+    bk -. "Feign #2: encaisse" .-> pay
+    bk -. "Feign #3: notifie" .-> notif
+
+    cls --- eureka["eureka-server :8761"]
+    bk --- eureka
+    pay --- eureka
+    notif --- eureka
+    gw --- eureka
+
+    cls -.-> cfg["config-server :8888\n(config-repo/*.yml)"]
+    bk -.-> cfg
+    pay -.-> cfg
+    notif -.-> cfg
+
+    classDef done fill:#3c7a56,stroke:#3c7a56,color:#fff;
+    classDef wip fill:#d94a1a,stroke:#d94a1a,color:#fff;
+    classDef todo fill:#9a927e,stroke:#9a927e,color:#fff;
+    classDef infra fill:#efe9dc,stroke:#ded5bf,color:#1d1a15;
+    class cls done;
+    class bk done;
+    class pay done;
+    class notif done;
+    class eureka,cfg,gw infra;
+      </pre>
+      <div class="legend">
+        <span><i class="swatch" style="background:#3c7a56"></i>codé</span>
+        <span><i class="swatch" style="background:#d94a1a"></i>en cours</span>
+        <span><i class="swatch" style="background:#9a927e"></i>à venir</span>
+        <span><i class="swatch" style="background:#ded5bf"></i>infra existante</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="concepts">
+    <span class="eyebrow">Concepts expliqués</span>
+    <h2>Ce qu'on a codé, et pourquoi</h2>
+    <p class="section-lede">Une carte par concept-clé, avec le vrai code qu'on vient d'écrire. Cette liste s'allonge à chaque brique.</p>
+
+    <article class="concept" id="concept-snapshot">
+      <div class="concept-head">
+        <span class="concept-num">01</span>
+        <h3>Le pattern "snapshot" dans Booking</h3>
+      </div>
+      <p>
+        <code class="inline">Booking</code> a un <code class="inline">classId</code> — mais aussi <code class="inline">className</code>,
+        <code class="inline">classDate</code>, <code class="inline">instructor</code> et <code class="inline">price</code> dupliqués en dur.
+        Ce n'est pas de la redondance par erreur : c'est volontaire.
+      </p>
+      <pre class="code-block"><span class="file">booking-service/.../model/Booking.java</span><span class="cm">// classId pointe vers class-service, MAIS on duplique aussi :</span>
+private Long classId;
+private String className;      <span class="cm">// copié depuis class-service au moment de la réservation</span>
+private LocalDateTime classDate;
+private String instructor;
+private BigDecimal price;      <span class="cm">// le prix PAYÉ, pas le prix actuel du cours</span></pre>
+      <p>
+        <b>Question posée :</b> 3 semaines après une réservation, l'instructeur du cours change dans class-service.
+        Que doit afficher <code class="inline">GET /api/bookings/{id}</code> pour la réservation déjà créée ?
+      </p>
+      <div class="verdict">
+        <span>→</span>
+        <span><b>L'ancien instructeur.</b> La valeur du snapshot ne change jamais rétroactivement — exactement comme une facture
+        garde le prix du jour de l'achat même si le tarif change ensuite. C'est ce qui a été réellement réservé et payé.
+        Si on rappelait class-service à chaque lecture pour "rester à jour", le snapshot ne serait qu'un cache inutile,
+        et surtout <code class="inline">GET /api/bookings/{id}</code> deviendrait indisponible dès que class-service tombe —
+        alors que la réservation, elle, doit rester consultable.</span>
+      </div>
+    </article>
+
+    <article class="concept" id="concept-optimistic-locking">
+      <div class="concept-head">
+        <span class="concept-num">02</span>
+        <h3>Verrouillage optimiste sur FitnessClass</h3>
+      </div>
+      <p>
+        Deux étudiants réservent en même temps la dernière place d'un cours
+        (<code class="inline">currentParticipants=9</code>, <code class="inline">maxParticipants=10</code>).
+      </p>
+      <pre class="code-block"><span class="file">class-service/.../model/FitnessClass.java</span><span class="kw">@Version</span>
+private Long version;   <span class="cm">// Hibernate ajoute "AND version = ?" au WHERE de chaque UPDATE</span>
+
+public void reserveSpots(int spots) {
+    if (this.currentParticipants + spots > this.maxParticipants) {
+        throw new IllegalStateException("Plus de places disponibles");
+    }
+    this.currentParticipants += spots;
+}</pre>
+      <pre class="code-block"><span class="file">class-service/.../service/ClassService.java</span><span class="kw">@Transactional</span>  <span class="cm">// ← c'est CETTE frontière qui déclenche la vérification de version,</span>
+                 <span class="cm">//   pas une annotation sur l'entité (un POJO n'est pas un bean Spring)</span>
+public ClassResponse incrementParticipants(Long id, int spots) {
+    FitnessClass c = getClassOrThrow(id);
+    c.reserveSpots(spots);
+    return ClassMapper.toResponse(classRepository.save(c));
+}</pre>
+      <p>Le 1ᵉʳ appel réussit et la version passe de 4 à 5. Le 2ᵉ appel, qui avait lu la version 4, tente un
+      <code class="inline">UPDATE ... WHERE id=? AND version=4</code> : 0 ligne affectée →
+      <code class="inline">ObjectOptimisticLockingFailureException</code> → 409 renvoyé au client. Aucun verrou posé en base,
+      juste une vérification a posteriori — donc pas de lecteurs bloqués.</p>
+    </article>
+
+    <article class="concept" id="concept-circuit-breaker">
+      <div class="concept-head">
+        <span class="concept-num">03</span>
+        <h3>Feign + Circuit Breaker : piège du "409 qui casse tout"</h3>
+      </div>
+      <p>
+        <code class="inline">feign.circuitbreaker.enabled: true</code> enveloppe automatiquement chaque appel
+        de <code class="inline">ClassClient</code>, <code class="inline">PaymentClient</code>, <code class="inline">NotificationClient</code>
+        dans un <code class="inline">CircuitBreaker</code> Resilience4j. Un cours complet renvoie un 409
+        (<code class="inline">NoSpotsAvailableException</code> côté class-service) — un événement normal, pas une panne.
+      </p>
+      <p><b>Le piège :</b> sans configuration, Resilience4j compte TOUTE exception (y compris un 409 métier) comme un
+      échec. Un cours populaire qui refuse plein de réservations en 409 finirait par ouvrir le circuit — alors que
+      class-service tourne parfaitement.</p>
+      <pre class="code-block"><span class="file">config-repo/booking-service.yml</span>resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        <span class="kw">ignore-exceptions</span>:               <span class="cm"># ne comptent PAS comme un échec du circuit</span>
+          - feign.FeignException$NotFound
+          - feign.FeignException$Conflict
+          - feign.FeignException$BadRequest</pre>
+      <p>Ces exceptions continuent de <em>remonter</em> normalement (booking-service les attrape toujours dans un
+      <code class="inline">try/catch</code> pour les traduire en 400/409 côté client) — elles ne comptent simplement
+      plus dans le taux d'échec qui déclenche l'ouverture du circuit. Seules les vraies pannes (timeout, connexion
+      refusée, 5xx, circuit déjà ouvert) font basculer <code class="inline">class-service</code> en "indisponible".</p>
+    </article>
+
+    <article class="concept" id="concept-saga">
+      <div class="concept-head">
+        <span class="concept-num">04</span>
+        <h3>Saga : orchestration + compensation dans <code class="inline" style="font-size:0.85em;">createBooking</code></h3>
+      </div>
+      <p>
+        Une Saga = une suite d'étapes locales, chacune dans un service différent, sans transaction
+        distribuée qui engloberait les 4 services. Si une étape échoue <em>après</em> qu'une étape
+        précédente a réussi, on ne "rollback" pas au sens SQL — on appelle une action de <b>compensation</b>
+        qui annule l'effet de l'étape précédente.
+      </p>
+      <pre class="code-block"><span class="file">booking-service/.../service/BookingService.java</span><span class="cm">// Etape 1 : lire le cours (snapshot)</span>
+ClassDto fitnessClass = fetchClass(request.getClassId());
+
+<span class="cm">// Etape 2 : reserver les places. Si 409 ici -> rien n'existe encore -> rien a compenser (Cas 2 du sujet)</span>
+reserveSpots(request.getClassId(), request.getNumberOfSpots());
+
+<span class="cm">// Etape 3 : persister la reservation. Si CA echoue apres l'etape 2 reussie...</span>
+try {
+    saved = persistNewBooking(request, fitnessClass);
+} catch (RuntimeException ex) {
+    <span class="kw">safeReleaseSpots</span>(request.getClassId(), request.getNumberOfSpots());  <span class="cm">// ← COMPENSATION</span>
+    throw ex;
+}</pre>
+      <p>
+        Deuxième compensation, symétrique, dans <code class="inline">cancelBooking</code> : une réservation
+        <code class="inline">PENDING_PAYMENT</code> annulée n'a jamais été payée (rien à rembourser), mais elle avait
+        déjà pris des places à l'étape 2 de sa création — <code class="inline">decrementParticipants</code> est donc
+        appelé <b>dans tous les cas</b> (CONFIRMED <i>et</i> PENDING_PAYMENT), alors que le remboursement ne l'est
+        que si le statut était CONFIRMED. Piège classique : oublier de libérer les places d'une réservation jamais payée.
+      </p>
+    </article>
+
+    <article class="concept" id="concept-best-effort">
+      <div class="concept-head">
+        <span class="concept-num">05</span>
+        <h3>Notifications : effet de bord "best effort"</h3>
+      </div>
+      <p>
+        <code class="inline">notifyBestEffort(...)</code> attrape <em>toutes</em> les exceptions et se contente de logger
+        — contrairement à <code class="inline">reserveSpots</code> qui, lui, propage l'erreur.
+      </p>
+      <div class="verdict">
+        <span>→</span>
+        <span>Une réservation valide et payée-à-venir ne doit <b>jamais</b> échouer parce que l'envoi d'un email a raté.
+        L'email est une conséquence de la réservation, pas une condition de sa validité — à l'inverse, "avoir une place"
+        (<code class="inline">reserveSpots</code>) est une condition : sans elle, la réservation elle-même n'a pas de sens.
+        Cette distinction (étape <i>constitutive</i> vs étape <i>secondaire</i>) est ce qui détermine, dans une Saga,
+        ce qui doit bloquer/compenser et ce qui peut simplement être retenté ou loggé.</span>
+      </div>
+    </article>
+
+    <article class="concept" id="concept-idempotent">
+      <div class="concept-head">
+        <span class="concept-num">06</span>
+        <h3>payment / notification : simuler sans mentir sur l'état</h3>
+      </div>
+      <p>
+        Les deux services "terminaux" de la Saga (rien ne les appelle après eux) partagent une règle :
+        <b>chaque tentative est enregistrée avec son vrai résultat</b>, jamais seulement les succès.
+      </p>
+      <pre class="code-block"><span class="file">payment-service/.../service/PaymentService.java</span>payment.setStatus(request.getAmount().compareTo(rejectionThreshold) < 0
+        ? PaymentStatus.SUCCESS
+        : PaymentStatus.FAILED);
+<span class="cm">// -> sauvegarde dans TOUS les cas : un paiement FAILED est une donnee utile (historique/debug),</span>
+<span class="cm">//    pas une erreur a ne pas persister. refund() verifie ensuite explicitement status == SUCCESS.</span></pre>
+      <p>
+        Coté <code class="inline">notification-service</code>, même logique : l'envoi simulé peut échouer
+        (~10%, aléatoire), le statut réel (<code class="inline">SENT</code>/<code class="inline">FAILED</code>) est stocké,
+        et <code class="inline">GET /api/notifications/pending</code> renvoie les <code class="inline">FAILED</code> —
+        exactement ce que <code class="inline">PATCH /{id}/retry</code> doit pouvoir retenter. Le seuil de rejet du
+        paiement (100€) est dans <code class="inline">config-repo/payment-service.yml</code>, pas codé en dur :
+        ajustable sans recompiler, comme tout le reste de la config métier.
+      </p>
+    </article>
+
+    <article class="concept" id="concept-scheduler">
+      <div class="concept-head">
+        <span class="concept-num">07</span>
+        <h3>Scheduler : séparer "quand" et "quoi"</h3>
+      </div>
+      <p><code class="inline">BookingScheduler</code> ne contient que deux méthodes <code class="inline">@Scheduled</code> qui délèguent
+      immédiatement à <code class="inline">BookingService</code>. Toute la logique (requêtes, libération de places, notifications)
+      reste dans le service.</p>
+      <pre class="code-block"><span class="file">booking-service/.../scheduler/BookingScheduler.java</span><span class="kw">@Scheduled</span>(cron = "${booking.scheduler.expire-pending-payments-cron:0 */5 * * * *}")
+public void expirePendingPayments() {
+    bookingService.expirePendingPayments();   <span class="cm">// toute la logique est testable SANS attendre un cron</span>
+}</pre>
+      <p><b>Pourquoi une fenêtre <code class="inline">[maintenant+24h, maintenant+25h)</code></b> pour les rappels, plutôt que
+      "classDate - 24h &lt;= maintenant" ? Le job tourne une fois par heure : avec une fenêtre glissante d'exactement
+      1h de large, chaque réservation confirmée ne peut traverser cette fenêtre qu'une seule fois entre deux exécutions
+      — un seul rappel envoyé, jamais de doublon (si la condition restait vraie sur plusieurs exécutions) ni d'oubli
+      (si le job ratait le instant précis).</p>
+    </article>
+
+    <article class="concept" id="concept-tests">
+      <div class="concept-head">
+        <span class="concept-num">08</span>
+        <h3>Tester une Saga sans jamais démarrer les 4 services</h3>
+      </div>
+      <p>
+        <code class="inline">BookingServiceTest</code> ne lance ni class-service, ni payment-service, ni
+        notification-service — les 3 <code class="inline">@FeignClient</code> sont des <code class="inline">@Mock</code> Mockito
+        au même titre que le repository. On teste uniquement l'<em>orchestration</em> (l'ordre des appels,
+        les compensations), jamais le réseau.
+      </p>
+      <pre class="code-block"><span class="file">booking-service/.../service/BookingServiceTest.java</span>@Mock private ClassClient classClient;
+@Mock private PaymentClient paymentClient;
+@Mock private NotificationClient notificationClient;
+@InjectMocks private BookingService bookingService;
+
+<span class="kw">when</span>(classClient.incrementParticipants(101L, 2)).thenThrow(conflictException());
+<span class="cm">// ...</span>
+assertThatThrownBy(() -> bookingService.createBooking(request))
+        .isInstanceOf(NoSpotsAvailableException.class);
+verify(bookingRepository, <span class="kw">never</span>()).save(any());  <span class="cm">// Cas 2 : rien n'a été persisté</span></pre>
+      <p>
+        Problème concret : <code class="inline">FeignException.Conflict</code> n'a pas de constructeur simple —
+        il exige un <code class="inline">feign.Request</code> réel (méthode, URL, headers…), car en production
+        c'est Feign lui-même qui le construit à partir d'une vraie réponse HTTP. Pour simuler un 409 en test,
+        il faut donc fabriquer ce contexte à la main :
+      </p>
+      <pre class="code-block"><span class="file">BookingServiceTest.java — fabriquer un 409 sans réseau</span>Request request = Request.create(Request.HttpMethod.PATCH, "/api/classes/101/increment",
+        Map.of(), null, StandardCharsets.UTF_8, new RequestTemplate());
+return new FeignException.Conflict("conflict", request, null, null);</pre>
+      <p>
+        Au niveau du contrôleur, <code class="inline">BookingControllerIntegrationTest</code> change d'échelle : Spring démarre
+        pour de vrai (<code class="inline">@SpringBootTest</code>), la requête traverse contrôleur → service → H2 réelle,
+        mais les 3 clients Feign restent remplacés via <code class="inline">@MockBean</code> — on garde un test d'intégration
+        <em>de booking-service seul</em>, jamais un vrai appel réseau vers un autre service.
+      </p>
+      <div class="verdict">
+        <span>→</span>
+        <span>Autre cas à part : <code class="inline">ClassOptimisticLockingIT</code> (carte 02) est le SEUL test qui a besoin d'un
+        vrai <code class="inline">ObjectOptimisticLockingFailureException</code> — donc <em>aucun</em> mock ici, et surtout
+        <b>pas de <code class="inline">@Transactional</code> sur la méthode de test elle-même</b> : avec une transaction
+        englobante, Hibernate garderait un seul et même objet en cache de premier niveau pour les deux lectures, et le
+        conflit de version ne pourrait jamais se produire. Il faut deux lectures vraiment indépendantes pour obtenir
+        deux copies désynchronisées de l'entité, exactement comme deux requêtes HTTP concurrentes en production.</span>
+      </div>
+    </article>
+
+    <article class="concept" id="concept-docker-reactor">
+      <div class="concept-head">
+        <span class="concept-num">09</span>
+        <h3>Piège Docker : un reactor Maven multi-module a besoin de TOUS ses poms</h3>
+      </div>
+      <p>
+        Chaque <code class="inline">Dockerfile</code> construit avec un contexte = la racine du repo, puis ne
+        <code class="inline">COPY</code> que quelques fichiers avant de lancer <code class="inline">mvn -pl &lt;module&gt; -am package</code> —
+        pour profiter du cache de couches Docker (les <code class="inline">pom.xml</code> changent rarement, le <code class="inline">src/</code>
+        change tout le temps).
+      </p>
+      <pre class="code-block"><span class="file">class-service/Dockerfile</span>COPY pom.xml .
+COPY eureka-server/pom.xml eureka-server/pom.xml
+<span class="cm">(... les 9 pom.xml de TOUS les modules, meme ceux qu'on ne construit pas ici ...)</span>
+COPY class-service/src class-service/src
+RUN mvn -q -pl class-service -am package -DskipTests</pre>
+      <p>
+        <b>Le piège :</b> <code class="inline">pom.xml</code> (racine) déclare 9 modules dans <code class="inline">&lt;modules&gt;</code>.
+        Pour construire le reactor Maven — même avec <code class="inline">-pl class-service</code>, qui ne compile
+        qu'un seul module — Maven doit d'abord lire le <code class="inline">pom.xml</code> de <em>chacun</em> des 9 modules
+        déclarés. Un seul manquant dans l'image (ex: on avait oublié de copier
+        <code class="inline">booking-service/pom.xml</code> dans le Dockerfile de class-service) et le build entier
+        échoue avec <em>"Child module ... does not exist"</em> — alors que class-service, lui, n'a strictement
+        rien à voir avec booking-service.
+      </p>
+      <div class="verdict">
+        <span>→</span>
+        <span>Ajouter un module au reactor (les 4 nouveaux services) impose de mettre à jour le
+        <code class="inline">COPY</code> des <code class="inline">pom.xml</code> dans <b>tous</b> les Dockerfiles existants, pas
+        seulement d'en écrire 4 nouveaux — <code class="inline">eureka-server/Dockerfile</code>,
+        <code class="inline">config-server/Dockerfile</code>, <code class="inline">api-gateway/Dockerfile</code>,
+        <code class="inline">product-service/Dockerfile</code> et <code class="inline">order-service/Dockerfile</code> ont tous dû
+        être corrigés pour cette brique, sinon <code class="inline">docker compose up --build</code> aurait cassé des
+        services qui n'avaient pourtant pas changé une seule ligne.</span>
+      </div>
+    </article>
+
+  </section>
+
+  <footer>fitconnect/ — mis à jour au fil des briques — session Claude</footer>
+</div>

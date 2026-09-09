@@ -1,0 +1,14 @@
+com\formation\notificationservice\dto\NotificationRequest.class
+com\formation\notificationservice\exception\NotificationNotFoundException.class
+com\formation\notificationservice\controller\NotificationController.class
+com\formation\notificationservice\model\Notification.class
+com\formation\notificationservice\model\NotificationType.class
+com\formation\notificationservice\repository\NotificationRepository.class
+com\formation\notificationservice\service\NotificationService.class
+com\formation\notificationservice\config\OpenApiConfig.class
+com\formation\notificationservice\exception\GlobalExceptionHandler.class
+com\formation\notificationservice\model\NotificationStatus.class
+com\formation\notificationservice\NotificationServiceApplication.class
+com\formation\notificationservice\dto\NotificationResponse.class
+com\formation\notificationservice\exception\ApiError.class
+com\formation\notificationservice\service\NotificationMapper.class

@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: "optional:configserver:http://localhost:8888"
+
+# Valeurs de secours si le config-server est indisponible (le profil "optional:" ci-dessus
+# permet au service de demarrer quand meme, avec ces valeurs par defaut).
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway

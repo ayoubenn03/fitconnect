@@ -1,0 +1,690 @@
+{
+  "info": {
+    "name": "FitConnect",
+    "description": "TP microservices EFRIE M2-DEV1 — class-service / booking-service (orchestrateur Saga) / payment-service / notification-service, appelés via api-gateway (:8080). Toutes les requêtes utilisent la variable de collection {{gatewayUrl}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "gatewayUrl", "value": "http://localhost:8080" },
+    { "key": "classId", "value": "" },
+    { "key": "bookingId", "value": "" },
+    { "key": "limitedClassId", "value": "" },
+    { "key": "cancelFlowClassId", "value": "" },
+    { "key": "cancelBookingId", "value": "" },
+    { "key": "paymentDirectId", "value": "" },
+    { "key": "notificationId", "value": "" },
+    { "key": "futureDate5", "value": "" },
+    { "key": "futureDate7", "value": "" },
+    { "key": "futureDate10", "value": "" },
+    { "key": "futureDate30", "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Recalcule des dates futures a chaque requete (LocalDateTime cote serveur, donc PAS de 'Z' en fin de chaine).",
+          "function pad(n) { return n.toString().padStart(2, '0'); }",
+          "function isoLocal(daysFromNow, hour) {",
+          "  const d = new Date(Date.now() + daysFromNow * 24 * 60 * 60 * 1000);",
+          "  d.setHours(hour, 0, 0, 0);",
+          "  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':00:00';",
+          "}",
+          "pm.collectionVariables.set('futureDate5', isoLocal(5, 9));",
+          "pm.collectionVariables.set('futureDate7', isoLocal(7, 18));",
+          "pm.collectionVariables.set('futureDate10', isoLocal(10, 10));",
+          "pm.collectionVariables.set('futureDate30', isoLocal(30, 8));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Class management",
+      "item": [
+        {
+          "name": "Creer un cours (Crossfit, 10 places)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('id present', () => pm.expect(body.id).to.be.a('number'));",
+                  "pm.collectionVariables.set('classId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/classes", "host": ["{{gatewayUrl}}"], "path": ["api", "classes"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Crossfit intensif\",\n  \"description\": \"Seance de crossfit haute intensite\",\n  \"instructor\": \"Karim\",\n  \"gymLocation\": \"Paris 10e\",\n  \"category\": \"CROSSFIT\",\n  \"level\": \"INTERMEDIATE\",\n  \"durationMinutes\": 60,\n  \"maxParticipants\": 10,\n  \"price\": 20.00,\n  \"dateTime\": \"{{futureDate10}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Lister les cours (pagination + filtre categorie)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gatewayUrl}}/api/classes?category=CROSSFIT&page=0&size=10&sort=dateTime,asc",
+              "host": ["{{gatewayUrl}}"], "path": ["api", "classes"],
+              "query": [
+                { "key": "category", "value": "CROSSFIT" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "dateTime,asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Rechercher des cours (niveau + localisation)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gatewayUrl}}/api/classes/search?level=INTERMEDIATE&location=Paris",
+              "host": ["{{gatewayUrl}}"], "path": ["api", "classes", "search"],
+              "query": [
+                { "key": "level", "value": "INTERMEDIATE" },
+                { "key": "location", "value": "Paris" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Recuperer un cours par id",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{gatewayUrl}}/api/classes/{{classId}}", "host": ["{{gatewayUrl}}"], "path": ["api", "classes", "{{classId}}"] }
+          }
+        },
+        {
+          "name": "Mettre a jour un cours",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [ "pm.test('200 OK', () => pm.response.to.have.status(200));" ] }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/classes/{{classId}}", "host": ["{{gatewayUrl}}"], "path": ["api", "classes", "{{classId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Crossfit intensif (salle B)\",\n  \"description\": \"Seance de crossfit haute intensite - changement de salle\",\n  \"instructor\": \"Karim\",\n  \"gymLocation\": \"Paris 10e - Salle B\",\n  \"category\": \"CROSSFIT\",\n  \"level\": \"INTERMEDIATE\",\n  \"durationMinutes\": 60,\n  \"maxParticipants\": 10,\n  \"price\": 22.00,\n  \"dateTime\": \"{{futureDate10}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Creer un cours a annuler",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('classToCancelId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/classes", "host": ["{{gatewayUrl}}"], "path": ["api", "classes"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Yoga du soir\",\n  \"description\": \"Seance de relaxation\",\n  \"instructor\": \"Nadia\",\n  \"gymLocation\": \"Paris 15e\",\n  \"category\": \"YOGA\",\n  \"level\": \"BEGINNER\",\n  \"durationMinutes\": 45,\n  \"maxParticipants\": 12,\n  \"price\": 15.00,\n  \"dateTime\": \"{{futureDate30}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Annuler ce cours",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [ "pm.test('204 No Content', () => pm.response.to.have.status(204));" ] }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{gatewayUrl}}/api/classes/{{classToCancelId}}", "host": ["{{gatewayUrl}}"], "path": ["api", "classes", "{{classToCancelId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Booking - parcours complet",
+      "item": [
+        {
+          "name": "Creer une reservation (PENDING_PAYMENT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('statut PENDING_PAYMENT', () => pm.expect(body.status).to.eql('PENDING_PAYMENT'));",
+                  "pm.collectionVariables.set('bookingId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/bookings", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"userEmail\": \"alice@example.com\",\n  \"userName\": \"Alice\",\n  \"classId\": {{classId}},\n  \"numberOfSpots\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Consulter la reservation",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{gatewayUrl}}/api/bookings/{{bookingId}}", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings", "{{bookingId}}"] }
+          }
+        },
+        {
+          "name": "Confirmer le paiement (CONFIRMED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('statut CONFIRMED', () => pm.expect(pm.response.json().status).to.eql('CONFIRMED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/bookings/{{bookingId}}/confirm", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings", "{{bookingId}}", "confirm"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CREDIT_CARD\",\n  \"cardLastFour\": \"4242\",\n  \"transactionId\": \"txn_demo_1\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verifier le paiement cree",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{gatewayUrl}}/api/payments/booking/{{bookingId}}", "host": ["{{gatewayUrl}}"], "path": ["api", "payments", "booking", "{{bookingId}}"] }
+          }
+        },
+        {
+          "name": "Terminer la reservation (COMPLETED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('statut COMPLETED', () => pm.expect(pm.response.json().status).to.eql('COMPLETED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{gatewayUrl}}/api/bookings/{{bookingId}}/complete", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings", "{{bookingId}}", "complete"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Booking - places epuisees (409)",
+      "item": [
+        {
+          "name": "Creer un cours a 5 places",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('limitedClassId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/classes", "host": ["{{gatewayUrl}}"], "path": ["api", "classes"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Spinning express\",\n  \"description\": \"Petit groupe\",\n  \"instructor\": \"Leo\",\n  \"gymLocation\": \"Paris 3e\",\n  \"category\": \"SPINNING\",\n  \"level\": \"ADVANCED\",\n  \"durationMinutes\": 30,\n  \"maxParticipants\": 5,\n  \"price\": 12.00,\n  \"dateTime\": \"{{futureDate7}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reservation A - 4 places (OK, il en reste 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [ "pm.test('201 Created', () => pm.response.to.have.status(201));" ] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/bookings", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 2,\n  \"userEmail\": \"bob@example.com\",\n  \"userName\": \"Bob\",\n  \"classId\": {{limitedClassId}},\n  \"numberOfSpots\": 4\n}"
+            }
+          }
+        },
+        {
+          "name": "Reservation B - 2 places (409, il n'en reste qu'1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+                  "pm.test('message explicite', () => pm.expect(pm.response.json().message).to.include('place'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/bookings", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 3,\n  \"userEmail\": \"chris@example.com\",\n  \"userName\": \"Chris\",\n  \"classId\": {{limitedClassId}},\n  \"numberOfSpots\": 2\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Booking - annulation avec remboursement",
+      "item": [
+        {
+          "name": "Creer un cours",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('cancelFlowClassId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/classes", "host": ["{{gatewayUrl}}"], "path": ["api", "classes"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pilates matinal\",\n  \"description\": \"Renforcement musculaire doux\",\n  \"instructor\": \"Nadia\",\n  \"gymLocation\": \"Paris 10e\",\n  \"category\": \"PILATES\",\n  \"level\": \"BEGINNER\",\n  \"durationMinutes\": 45,\n  \"maxParticipants\": 8,\n  \"price\": 18.00,\n  \"dateTime\": \"{{futureDate10}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Creer une reservation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('cancelBookingId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/bookings", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 4,\n  \"userEmail\": \"dana@example.com\",\n  \"userName\": \"Dana\",\n  \"classId\": {{cancelFlowClassId}},\n  \"numberOfSpots\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Confirmer le paiement",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [ "pm.test('200 OK', () => pm.response.to.have.status(200));" ] }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/bookings/{{cancelBookingId}}/confirm", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings", "{{cancelBookingId}}", "confirm"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"PAYPAL\",\n  \"transactionId\": \"txn_demo_2\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Annuler la reservation (CANCELLED + remboursement)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('statut CANCELLED', () => pm.expect(pm.response.json().status).to.eql('CANCELLED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{gatewayUrl}}/api/bookings/{{cancelBookingId}}/cancel", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings", "{{cancelBookingId}}", "cancel"] }
+          }
+        },
+        {
+          "name": "Verifier le paiement REFUNDED",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('statut REFUNDED', () => pm.expect(pm.response.json().status).to.eql('REFUNDED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{gatewayUrl}}/api/payments/booking/{{cancelBookingId}}", "host": ["{{gatewayUrl}}"], "path": ["api", "payments", "booking", "{{cancelBookingId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Payment (acces direct)",
+      "item": [
+        {
+          "name": "Paiement accepte (montant < seuil 100e)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('statut SUCCESS', () => pm.expect(body.status).to.eql('SUCCESS'));",
+                  "pm.collectionVariables.set('paymentDirectId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/payments", "host": ["{{gatewayUrl}}"], "path": ["api", "payments"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": 9001,\n  \"bookingReference\": \"BK-DEMO0001\",\n  \"userId\": 5,\n  \"amount\": 49.90,\n  \"paymentMethod\": \"CREDIT_CARD\",\n  \"cardLastFour\": \"1234\",\n  \"transactionId\": \"txn_direct_ok\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Paiement refuse (montant >= seuil 100e)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created (persiste quand meme)', () => pm.response.to.have.status(201));",
+                  "pm.test('statut FAILED', () => pm.expect(pm.response.json().status).to.eql('FAILED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/payments", "host": ["{{gatewayUrl}}"], "path": ["api", "payments"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingId\": 9002,\n  \"bookingReference\": \"BK-DEMO0002\",\n  \"userId\": 5,\n  \"amount\": 250.00,\n  \"paymentMethod\": \"STRIPE\",\n  \"transactionId\": \"txn_direct_ko\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Rembourser le paiement accepte",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('statut REFUNDED', () => pm.expect(pm.response.json().status).to.eql('REFUNDED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{gatewayUrl}}/api/payments/{{paymentDirectId}}/refund", "host": ["{{gatewayUrl}}"], "path": ["api", "payments", "{{paymentDirectId}}", "refund"] }
+          }
+        },
+        {
+          "name": "Historique des paiements d'un utilisateur",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{gatewayUrl}}/api/payments/user/5", "host": ["{{gatewayUrl}}"], "path": ["api", "payments", "user", "5"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Notification (acces direct)",
+      "item": [
+        {
+          "name": "Envoyer une notification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('statut SENT ou FAILED', () => pm.expect(['SENT','FAILED']).to.include(body.status));",
+                  "pm.collectionVariables.set('notificationId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/notifications", "host": ["{{gatewayUrl}}"], "path": ["api", "notifications"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 6,\n  \"email\": \"eve@example.com\",\n  \"type\": \"BOOKING_CONFIRMATION\",\n  \"subject\": \"Reservation confirmee\",\n  \"content\": \"Votre reservation BK-DEMO est confirmee.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Historique des notifications d'un utilisateur",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{gatewayUrl}}/api/notifications/user/6", "host": ["{{gatewayUrl}}"], "path": ["api", "notifications", "user", "6"] }
+          }
+        },
+        {
+          "name": "Notifications en echec (candidates au retry)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{gatewayUrl}}/api/notifications/pending", "host": ["{{gatewayUrl}}"], "path": ["api", "notifications", "pending"] }
+          }
+        },
+        {
+          "name": "Reessayer une notification",
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [ "pm.test('200 OK', () => pm.response.to.have.status(200));" ] }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{gatewayUrl}}/api/notifications/{{notificationId}}/retry", "host": ["{{gatewayUrl}}"], "path": ["api", "notifications", "{{notificationId}}", "retry"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Scenarios d'erreur",
+      "item": [
+        {
+          "name": "Cours introuvable (404)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('404 Not Found', () => pm.response.to.have.status(404));" ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{gatewayUrl}}/api/classes/999999", "host": ["{{gatewayUrl}}"], "path": ["api", "classes", "999999"] }
+          }
+        },
+        {
+          "name": "Reservation introuvable (404)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('404 Not Found', () => pm.response.to.have.status(404));" ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{gatewayUrl}}/api/bookings/999999", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings", "999999"] }
+          }
+        },
+        {
+          "name": "Paiement introuvable pour une reservation (404)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('404 Not Found', () => pm.response.to.have.status(404));" ] } }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{gatewayUrl}}/api/payments/booking/999999", "host": ["{{gatewayUrl}}"], "path": ["api", "payments", "booking", "999999"] }
+          }
+        },
+        {
+          "name": "Notification introuvable au retry (404)",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('404 Not Found', () => pm.response.to.have.status(404));" ] } }
+          ],
+          "request": {
+            "method": "PATCH",
+            "url": { "raw": "{{gatewayUrl}}/api/notifications/999999/retry", "host": ["{{gatewayUrl}}"], "path": ["api", "notifications", "999999", "retry"] }
+          }
+        },
+        {
+          "name": "Creation de cours - duree invalide (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('fieldErrors.durationAllowed present', () => pm.expect(pm.response.json().fieldErrors).to.have.property('durationAllowed'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/classes", "host": ["{{gatewayUrl}}"], "path": ["api", "classes"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cours invalide\",\n  \"description\": \"Duree non autorisee\",\n  \"instructor\": \"Karim\",\n  \"gymLocation\": \"Paris\",\n  \"category\": \"BOXING\",\n  \"level\": \"BEGINNER\",\n  \"durationMinutes\": 40,\n  \"maxParticipants\": 10,\n  \"price\": 20.00,\n  \"dateTime\": \"{{futureDate10}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Creation de reservation - email invalide (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('fieldErrors.userEmail present', () => pm.expect(pm.response.json().fieldErrors).to.have.property('userEmail'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/bookings", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 7,\n  \"userEmail\": \"pas-un-email\",\n  \"userName\": \"Frank\",\n  \"classId\": {{classId}},\n  \"numberOfSpots\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Confirmation de paiement - carte invalide (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('fieldErrors.cardLastFour present', () => pm.expect(pm.response.json().fieldErrors).to.have.property('cardLastFour'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{gatewayUrl}}/api/bookings/{{bookingId}}/confirm", "host": ["{{gatewayUrl}}"], "path": ["api", "bookings", "{{bookingId}}", "confirm"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"CREDIT_CARD\",\n  \"cardLastFour\": \"12\",\n  \"transactionId\": \"txn_invalide\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

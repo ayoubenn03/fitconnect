@@ -1,0 +1,17 @@
+# Configuration de test : pas de dependance a un config-server ou eureka-server reels,
+# et pas de vrais appels HTTP vers class/payment/notification-service (voir @MockBean dans les tests).
+spring:
+  cloud:
+    config:
+      enabled: false
+    discovery:
+      enabled: false
+  datasource:
+    url: jdbc:h2:mem:bookingdb-test;DB_CLOSE_DELAY=-1
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+eureka:
+  client:
+    enabled: false

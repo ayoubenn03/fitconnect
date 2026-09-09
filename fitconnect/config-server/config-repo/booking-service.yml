@@ -1,0 +1,81 @@
+server:
+  port: 8092
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:bookingdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Active l'intégration Feign <-> Resilience4j : chaque méthode de chaque @FeignClient
+# est automatiquement enveloppée dans un CircuitBreaker nommé "<nomDuClient>".
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+  circuitbreaker:
+    enabled: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+        # IMPORTANT : un 404 (cours/booking inconnu) ou un 409 (plus de places, paiement
+        # refuse...) est une reponse metier NORMALE du service appele, pas une panne.
+        # Sans cette liste, des refus 409 frequents (ex: cours complet) feraient croire au
+        # circuit breaker que class-service est en panne et l'ouvriraient a tort.
+        ignore-exceptions:
+          - feign.FeignException$NotFound
+          - feign.FeignException$Conflict
+          - feign.FeignException$BadRequest
+    instances:
+      class-service:
+        base-config: default
+      payment-service:
+        base-config: default
+      notification-service:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 4s
+    instances:
+      class-service:
+        base-config: default
+      payment-service:
+        base-config: default
+      notification-service:
+        base-config: default
+
+# Cron du scheduler (expiration des réservations en attente / rappels J-1)
+booking:
+  scheduler:
+    expire-pending-payments-cron: "0 */5 * * * *"
+    class-reminder-cron: "0 0 * * * *"
