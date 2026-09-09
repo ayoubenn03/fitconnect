@@ -127,7 +127,9 @@ mvn -pl class-service,booking-service,payment-service,notification-service -am t
 - **03 - Booking - places épuisées** : 2 réservations sur un cours à 1 place → la 2e renvoie 409
 - **04 - Booking - annulation avec remboursement**
 - **05 - Payment (accès direct)** : paiement accepté / refusé (seuil), remboursement
-- **06 - Notification (accès direct)** : envoi, historique, pending, retry
+- **06 - Notification (accès direct)** : envoi, historique, pending, retry (« pending » = notifications
+  en échec (`FAILED`) en attente de retry, pas un statut `PENDING` littéral : l'envoi simulé résout
+  toujours immédiatement en `SENT` ou `FAILED`)
 - **07 - Scénarios d'erreur** : 404 sur les 4 services, erreurs de validation (durée de cours
   invalide, email invalide, format de carte invalide)
 

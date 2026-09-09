@@ -348,7 +348,7 @@ public class BookingService {
     }
 
     private String generateBookingReference() {
-        return "BK-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        return "BK-" + UUID.randomUUID().toString().replace("-", "").substring(0, 5).toUpperCase();
     }
 
     private Booking getBookingOrThrow(Long id) {

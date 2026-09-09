@@ -81,6 +81,6 @@ public class PaymentService {
     }
 
     private String generatePaymentReference() {
-        return "PAY-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        return "PAY-" + UUID.randomUUID().toString().replace("-", "").substring(0, 5).toUpperCase();
     }
 }
